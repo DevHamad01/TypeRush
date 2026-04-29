@@ -16,6 +16,10 @@ import SignUp from './pages/SignUp';
 import ForgotPassword from './pages/ForgotPassword';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
+import FallingWords from './pages/games/FallingWords';
+import CyberDefender from './pages/games/CyberDefender';
+import FlashMemory from './pages/games/FlashMemory';
+
 function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
@@ -25,9 +29,14 @@ function App() {
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            {/* Standalone full-screen game routes (no Navbar/Footer) */}
+            <Route path="/games/falling" element={<FallingWords />} />
+            <Route path="/games/defender" element={<CyberDefender />} />
+            <Route path="/games/memory" element={<FlashMemory />} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/test" element={<TypingTest />} />
+
               <Route path="/about" element={<About />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/contact" element={<Contact />} />

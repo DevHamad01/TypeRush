@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, Target, BarChart3, PlayCircle, ChevronRight, Star, ArrowRight, Users, Award } from 'lucide-react';
+import { Zap, Target, BarChart3, PlayCircle, ChevronRight, Star, ArrowRight, Users, Award, Gamepad2 } from 'lucide-react';
 
 const FEATURES = [
   { icon: Zap, title: 'Real-Time WPM', desc: 'Your speed updates live as you type. Watch your WPM climb with every word.', color: 'text-primary bg-primary/10' },
@@ -221,6 +221,41 @@ export default function Home() {
                   <p className="text-sm text-muted-foreground">{t.role}</p>
                 </div>
               </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Arcade Game Modes */}
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 space-y-3">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold border border-primary/20">
+              <Gamepad2 className="w-3.5 h-3.5" />
+              New! Arcade Modes
+            </div>
+            <h2 className="text-4xl font-bold">Not just a test — it's a game</h2>
+            <p className="text-lg text-muted-foreground">Three unique game modes to make typing practice actually fun</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: '🌧️', title: 'Falling Words', path: '/games/falling', desc: 'Words rain from the sky. Type them before they hit the danger zone.', color: 'border-purple-500/30 hover:shadow-purple-500/10', accent: 'text-purple-400' },
+              { icon: '🛡️', title: 'Cyber Defender', path: '/games/defender', desc: 'Enemies charge your base. Type to destroy them before they breach.', color: 'border-cyan-500/30 hover:shadow-cyan-500/10', accent: 'text-cyan-400' },
+              { icon: '🧠', title: 'Flash Memory', path: '/games/memory', desc: 'Words flash, then vanish. Type them back from memory.', color: 'border-emerald-500/30 hover:shadow-emerald-500/10', accent: 'text-emerald-400' },
+            ].map((mode, i) => (
+              <Link key={mode.title} to={mode.path}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className={`h-full bg-card border ${mode.color} rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
+                >
+                  <div className="text-4xl mb-4">{mode.icon}</div>
+                  <h3 className="text-lg font-bold mb-1">{mode.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{mode.desc}</p>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>
