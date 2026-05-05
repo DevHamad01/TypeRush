@@ -2,23 +2,34 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
 import PageNotFound from './lib/PageNotFound';
 import { FirebaseAuthProvider } from '@/lib/FirebaseAuthContext';
 import AppLayout from '@/components/layout/AppLayout';
 import Home from './pages/Home';
 import TypingTest from './pages/TypingTest';
-import About from './pages/About';
-import FAQ from './pages/FAQ';
-import Contact from './pages/Contact';
-import Profile from './pages/Profile';
-import SignIn from './pages/SignIn';
-import SignUp from './pages/SignUp';
-import ForgotPassword from './pages/ForgotPassword';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
-import FallingWords from './pages/games/FallingWords';
-import CyberDefender from './pages/games/CyberDefender';
-import FlashMemory from './pages/games/FlashMemory';
+// Lazy load pages to reduce initial bundle
+const About = lazy(() => import('./pages/About'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Profile = lazy(() => import('./pages/Profile'));
+const SignIn = lazy(() => import('./pages/SignIn'));
+const SignUp = lazy(() => import('./pages/SignUp'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+
+// Lazy load games
+const FallingWords = lazy(() => import('./pages/games/FallingWords'));
+const CyberDefender = lazy(() => import('./pages/games/CyberDefender'));
+const FlashMemory = lazy(() => import('./pages/games/FlashMemory'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
 
 function App() {
   return (
@@ -26,21 +37,20 @@ function App() {
       <FirebaseAuthProvider>
         <Router>
           <Routes>
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/signin" element={<Suspense fallback={<LoadingFallback />}><SignIn /></Suspense>} />
+            <Route path="/signup" element={<Suspense fallback={<LoadingFallback />}><SignUp /></Suspense>} />
+            <Route path="/forgot-password" element={<Suspense fallback={<LoadingFallback />}><ForgotPassword /></Suspense>} />
             {/* Standalone full-screen game routes (no Navbar/Footer) */}
-            <Route path="/games/falling" element={<FallingWords />} />
-            <Route path="/games/defender" element={<CyberDefender />} />
-            <Route path="/games/memory" element={<FlashMemory />} />
+            <Route path="/games/falling" element={<Suspense fallback={<LoadingFallback />}><FallingWords /></Suspense>} />
+            <Route path="/games/defender" element={<Suspense fallback={<LoadingFallback />}><CyberDefender /></Suspense>} />
+            <Route path="/games/memory" element={<Suspense fallback={<LoadingFallback />}><FlashMemory /></Suspense>} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/test" element={<TypingTest />} />
-
-              <Route path="/about" element={<About />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><About /></Suspense>} />
+              <Route path="/faq" element={<Suspense fallback={<LoadingFallback />}><FAQ /></Suspense>} />
+              <Route path="/contact" element={<Suspense fallback={<LoadingFallback />}><Contact /></Suspense>} />
+              <Route path="/profile" element={<Suspense fallback={<LoadingFallback />}><ProtectedRoute><Profile /></ProtectedRoute></Suspense>} />
             </Route>
             <Route path="*" element={<PageNotFound />} />
           </Routes>
