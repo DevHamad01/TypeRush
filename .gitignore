@@ -42,3 +42,8 @@ build
 
 # OS
 Thumbs.db
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
