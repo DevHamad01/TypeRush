@@ -8,24 +8,49 @@ import {
   googleProvider 
 } from '@/lib/firebase';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const SignUp = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const navigate = useNavigate();
+
+  // Email validation
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Friendly error messages
+  const getErrorMessage = (errorCode) => {
+    const errorMessages = {
+      'auth/email-already-in-use': 'Email already registered. Please sign in or use a different email',
+      'auth/invalid-email': 'Invalid email address',
+      'auth/weak-password': 'Password is too weak. Use at least 6 characters with mix of letters and numbers',
+      'auth/operation-not-allowed': 'Email/password accounts are not enabled',
+    };
+    return errorMessages[errorCode] || 'Sign up failed. Please try again';
+  };
 
   const handleGoogleSignUp = async () => {
     try {
       setLoading(true);
       await signInWithPopup(auth, googleProvider);
-      toast.success('Account created successfully!');
+      toast.success('Welcome! Account created successfully 🎉');
       navigate('/');
     } catch (error) {
-      toast.error(error.message);
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast.error('Google sign-up failed. Please try again');
+      }
     } finally {
       setLoading(false);
     }
@@ -33,25 +58,62 @@ const SignUp = () => {
 
   const handleEmailSignUp = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password || !confirmPassword) {
-      toast.error('Please fill in all fields');
+    setNameError('');
+    setEmailError('');
+    setPasswordError('');
+    setConfirmPasswordError('');
+
+    // Validation
+    let isValid = true;
+
+    if (!name) {
+      setNameError('Name is required');
+      isValid = false;
+    } else if (name.length < 2) {
+      setNameError('Name must be at least 2 characters');
+      isValid = false;
+    }
+
+    if (!email) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email');
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      isValid = false;
+    }
+
+    if (!confirmPassword) {
+      setConfirmPasswordError('Please confirm your password');
+      isValid = false;
+    } else if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      isValid = false;
+    }
+
+    if (!isValid) {
+      toast.error('Please fix the errors above');
       return;
     }
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
+
     try {
       setLoading(true);
       await createUserWithEmailAndPassword(auth, email, password);
-      toast.success('Account created successfully!');
+      toast.success('Welcome! 🚀 Account created successfully');
       navigate('/');
     } catch (error) {
-      toast.error(error.message);
+      const errorMessage = getErrorMessage(error.code);
+      toast.error(errorMessage);
+      if (error.code === 'auth/email-already-in-use') {
+        setEmailError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -114,12 +176,20 @@ const SignUp = () => {
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setNameError('');
+                }}
                 placeholder="Enter your name"
-                className="w-full pl-10 pr-4 py-2.5 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                  nameError
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                    : 'border-slate-200 focus:border-purple-500 focus:ring-purple-200'
+                }`}
                 disabled={loading}
               />
             </div>
+            {nameError && <p className="text-red-500 text-xs mt-1">{nameError}</p>}
           </div>
 
           <div>
@@ -129,12 +199,20 @@ const SignUp = () => {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
                 placeholder="Enter your email"
-                className="w-full pl-10 pr-4 py-2.5 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                  emailError
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                    : 'border-slate-200 focus:border-purple-500 focus:ring-purple-200'
+                }`}
                 disabled={loading}
               />
             </div>
+            {emailError && <p className="text-red-500 text-xs mt-1">{emailError}</p>}
           </div>
 
           <div>
@@ -142,14 +220,34 @@ const SignUp = () => {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordError('');
+                }}
                 placeholder="Create a password"
-                className="w-full pl-10 pr-4 py-2.5 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                className={`w-full pl-10 pr-12 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                  passwordError
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                    : 'border-slate-200 focus:border-purple-500 focus:ring-purple-200'
+                }`}
                 disabled={loading}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
+            {passwordError && <p className="text-red-500 text-xs mt-1">{passwordError}</p>}
           </div>
 
           <div>
@@ -157,14 +255,34 @@ const SignUp = () => {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setConfirmPasswordError('');
+                }}
                 placeholder="Confirm your password"
-                className="w-full pl-10 pr-4 py-2.5 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                className={`w-full pl-10 pr-12 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                  confirmPasswordError
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                    : 'border-slate-200 focus:border-purple-500 focus:ring-purple-200'
+                }`}
                 disabled={loading}
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
+                disabled={loading}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
+            {confirmPasswordError && <p className="text-red-500 text-xs mt-1">{confirmPasswordError}</p>}
           </div>
 
           <button

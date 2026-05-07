@@ -8,22 +8,46 @@ import {
   googleProvider 
 } from '@/lib/firebase';
 import { toast } from 'sonner';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
+
+  // Email validation
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Friendly error messages
+  const getErrorMessage = (errorCode) => {
+    const errorMessages = {
+      'auth/invalid-email': 'Invalid email address',
+      'auth/user-not-found': 'User not found. Please create an account',
+      'auth/wrong-password': 'Incorrect password',
+      'auth/invalid-credential': 'Incorrect email or password',
+      'auth/user-disabled': 'Your account has been disabled',
+      'auth/too-many-requests': 'Too many login attempts. Please try again later',
+    };
+    return errorMessages[errorCode] || 'Login failed. Please try again';
+  };
 
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
       await signInWithPopup(auth, googleProvider);
-      toast.success('Signed in successfully!');
+      toast.success('Welcome back! Signed in successfully 👋');
       navigate('/');
     } catch (error) {
-      toast.error(error.message);
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast.error('Google sign-in failed. Please try again');
+      }
     } finally {
       setLoading(false);
     }
@@ -31,17 +55,45 @@ const SignIn = () => {
 
   const handleEmailSignIn = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error('Please fill in all fields');
+    setEmailError('');
+    setPasswordError('');
+
+    // Validation
+    let isValid = true;
+    if (!email) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email');
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      isValid = false;
+    }
+
+    if (!isValid) {
+      toast.error('Please check your inputs');
       return;
     }
+
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success('Signed in successfully!');
+      toast.success('Welcome back! 🎉');
       navigate('/');
     } catch (error) {
-      toast.error(error.message);
+      const errorMessage = getErrorMessage(error.code);
+      toast.error(errorMessage);
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        setPasswordError(errorMessage);
+      } else if (error.code === 'auth/user-not-found') {
+        setEmailError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -104,12 +156,20 @@ const SignIn = () => {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
                 placeholder="Enter your email"
-                className="w-full pl-10 pr-4 py-2.5 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                  emailError
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                    : 'border-slate-200 focus:border-purple-500 focus:ring-purple-200'
+                }`}
                 disabled={loading}
               />
             </div>
+            {emailError && <p className="text-red-500 text-xs mt-1">{emailError}</p>}
           </div>
 
           <div>
@@ -117,14 +177,34 @@ const SignIn = () => {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordError('');
+                }}
                 placeholder="Enter your password"
-                className="w-full pl-10 pr-4 py-2.5 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                className={`w-full pl-10 pr-12 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                  passwordError
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                    : 'border-slate-200 focus:border-purple-500 focus:ring-purple-200'
+                }`}
                 disabled={loading}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
+            {passwordError && <p className="text-red-500 text-xs mt-1">{passwordError}</p>}
           </div>
 
           <div className="flex justify-end">
