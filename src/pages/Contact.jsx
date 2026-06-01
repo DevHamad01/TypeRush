@@ -134,15 +134,15 @@ export default function Contact() {
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-muted-foreground">
                 <Mail className="w-5 h-5" />
-                <span>hello@typerush.com</span>
+                <span>iammhamad8@gmail.com</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
                 <Linkedin className="w-5 h-5" />
-                <span>linkedin.com/company/typerush</span>
+                <span>linkedin.com/in/muhammad-hamad-5b6067352</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
                 <Github className="w-5 h-5" />
-                <span>github.com/typerush</span>
+                <span>github.com/DevHamad01</span>
               </div>
             </div>
           </div>
@@ -151,4 +151,3 @@ export default function Contact() {
     </div>
   );
 }
- 
